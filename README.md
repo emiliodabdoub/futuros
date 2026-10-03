@@ -26,7 +26,7 @@ Decisiones de implementación: [docs/adr/](docs/adr/).
 | Orquestador de sesión (adapter→gate→features→LR→exec) | hecho; validación sobre la muestra completa pendiente de descarga | `src/trading_scanner/replay/session.py` |
 | ENG-09 Splits/purga/embargo, modelo base, temperatura, métricas | hecho (lógica); entrenamiento real requiere outcomes de la muestra | `src/trading_scanner/training`, `src/trading_scanner/models` |
 | ENG-10 Ranking RAEV + NO TRADE + risk engine paper | hecho (lógica); dashboard pendiente | `src/trading_scanner/scanner`, `src/trading_scanner/risk` |
-| ENG-11 TC-v1 y BO-v1 | pendiente (tras revisar LR en la muestra) | — |
+| ENG-11 TC-v1 y BO-v1 | hecho, DESHABILITADOS por defecto (D06); se activan en experimento propio | `src/trading_scanner/setups/{trend_continuation,breakout}` |
 | ENG-04..11 | pendiente | — |
 
 Accesos pendientes del usuario (protocolo §2): cuenta Databento (`DATABENTO_API_KEY`) y cuenta TypeSafe/Jev (`TYPESAFE_API_KEY`). Nunca en el repo.

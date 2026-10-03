@@ -83,6 +83,7 @@ class LRContext:
     spread_ticks: int | None
     in_entry_window: bool
     blocked_reasons: tuple[str, ...] = ()  # calidad, régimen UNKNOWN, shock, macro…
+    regime: str | None = None  # usado por TC-v1 (precondición de tendencia); LR lo ignora
 
     @property
     def blocked(self) -> bool:
