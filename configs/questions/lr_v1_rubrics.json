@@ -1,0 +1,57 @@
+{
+  "rubric_version": "LR-rubrics-v1",
+  "requested_model": "jev-1.13.0",
+  "language": "en",
+  "questions": {
+    "context_structure": {
+      "type": "choice",
+      "instructions": "Using only the fields `bars_1m` (last twelve 1-minute bars, normalized), `ret_5m` and `ret_15m` of the provided state, describe the continuity of highs and lows and the recent returns. Pick the structure that best matches. If the fields are missing or marked null, answer insufficient_data.",
+      "criteria": {
+        "uptrend": "Higher highs and higher lows across the bars with positive 5m/15m returns.",
+        "downtrend": "Lower highs and lower lows across the bars with negative 5m/15m returns.",
+        "range": "Overlapping bars without directional progress; returns near zero.",
+        "transition": "Structure changing or mixed; prior direction weakening without a clear new one.",
+        "insufficient_data": "Required fields missing, null, or too few bars."
+      }
+    },
+    "absorption_evidence": {
+      "type": "choice",
+      "instructions": "Using `sweep` (depth and duration of the move through `level`), `reclaim`, `delta_5s`, `delta_10s`, `delta_60s` and `depth_levels` of the provided state, judge whether high aggressive flow produced limited displacement followed by recovery. Do not infer who the participants are. If required fields are missing, answer insufficient_data.",
+      "criteria": {
+        "buyer_absorption": "Aggressive selling (negative delta) during the sweep with limited downward displacement and a recovery above the level.",
+        "seller_absorption": "Aggressive buying (positive delta) during the sweep with limited upward displacement and a recovery below the level.",
+        "neither": "Flow and displacement are proportional; no evidence of absorption.",
+        "insufficient_data": "Sweep, reclaim or delta fields missing or null."
+      }
+    },
+    "flow_alignment": {
+      "type": "choice",
+      "instructions": "Evaluate exclusively whether the aggressive flow windows `delta_5s`, `delta_10s` and `delta_60s` of the provided state support the `proposed_side` field (LONG or SHORT). Positive delta supports LONG; negative delta supports SHORT. Ignore price structure for this question. If the delta fields are missing, answer insufficient_data.",
+      "criteria": {
+        "supports": "All available delta windows have the sign that favors proposed_side.",
+        "opposes": "All available delta windows have the sign against proposed_side.",
+        "mixed": "Delta windows disagree in sign.",
+        "insufficient_data": "Delta fields missing or null."
+      }
+    },
+    "reversal_quality": {
+      "type": "score",
+      "instructions": "Rate the quality of the reversal described by `sweep`, `reclaim`, the delta windows, `bars_1m` and `proposed_side` of the provided state, for the proposed_side direction. This is an ordinal scale, not a probability of success.",
+      "criteria": [
+        "0: Sweep without recovery; price has not reclaimed the level.",
+        "1: Weak or contradictory recovery; flow does not align with proposed_side.",
+        "2: Recovery and aggressive flow aligned with proposed_side.",
+        "3: Sustained recovery with favorable displacement and compatible context."
+      ]
+    },
+    "evidence_sufficiency": {
+      "type": "choice",
+      "instructions": "Judge only whether the data present in the provided state (bars, deltas, depth, sweep, reclaim, quality flags) is complete and current enough to assess the setup. Do not judge whether the trade is attractive. Missing or stale fields reduce sufficiency.",
+      "criteria": {
+        "sufficient": "All required fields present, non-null and current.",
+        "partial": "Some fields missing or stale but the core sweep/reclaim/delta fields are present.",
+        "insufficient": "Core fields missing, null or stale."
+      }
+    }
+  }
+}

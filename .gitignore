@@ -12,3 +12,5 @@ artifacts/
 *.egg-info/
 build/
 dist/
+secrets.txt
+.env*
