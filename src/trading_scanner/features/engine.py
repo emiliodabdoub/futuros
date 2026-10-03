@@ -36,8 +36,9 @@ class _Trade:
 
 class FeatureEngine:
     def __init__(self, contract_id: str, *, session_open_ns: int, opening_range_end_ns: int,
-                 contract_spec_version: str = "catalog-v1") -> None:
+                 contract_spec_version: str = "catalog-v1", f15_from_ns: int | None = None) -> None:
         self.contract_id = contract_id
+        self.f15_from_ns = f15_from_ns  # si se fija, los bloques de 5 s anteriores no cuentan para la mediana de F15
         self.session_open_ns = session_open_ns
         self.opening_range_end_ns = opening_range_end_ns
         self.contract_spec_version = contract_spec_version
@@ -99,6 +100,8 @@ class FeatureEngine:
                 self.or_high = tr.price if self.or_high is None else max(self.or_high, tr.price)
                 self.or_low = tr.price if self.or_low is None else min(self.or_low, tr.price)
         block = (tr.ts_event_ns // (5 * NS)) * 5 * NS
+        if self.f15_from_ns is not None and block < self.f15_from_ns:
+            return
         if self._cur_block is None or block != self._cur_block[0]:
             if self._cur_block is not None and block > self._cur_block[0]:
                 self._blocks_5s.append(self._cur_block)

@@ -38,6 +38,7 @@ class RegimeParams:
     shock_mult: float = 3.0
     shock_block_ns: int = 5 * 60 * NS
     atr1_period: int = 14
+    shock_from_ns: int | None = None  # si se fija, el ATR de referencia del shock usa solo barras con start >= este instante (p.ej. RTH)
 
 
 @dataclass
@@ -101,6 +102,8 @@ class RegimeTracker:
     # ---- shock por barra 1m ----------------------------------------------------------------------
     def on_bar_1m_close(self, bars_1m: list[Bar], closed_at_ns: int) -> bool:
         p = self.params
+        if p.shock_from_ns is not None:
+            bars_1m = [b for b in bars_1m if b.start_ns >= p.shock_from_ns]
         if len(bars_1m) < p.atr1_period + 2:
             return False
         atr_prev = atr_simple(bars_1m[:-1], p.atr1_period)  # ATR ANTES de la última barra

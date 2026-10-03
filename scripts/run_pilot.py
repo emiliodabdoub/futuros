@@ -36,6 +36,12 @@ from trading_scanner.registry import ContractUnresolvedError, InstrumentCatalog,
 NS = 1_000_000_000
 MANIFEST = ROOT / "manifests" / "pilot-orderflow-v1.json"
 OUT = ROOT / "artifacts" / "pilot"
+VARIANTS = {
+    "base": {},
+    # Controles de datos con referencias solo de RTH (sensibilidad preregistrada, LR-v1 intacto):
+    #  shock: ATR de referencia solo con barras desde 09:30 NY; F15: mediana solo desde 09:30 NY; GC: ventana de agresor 300 s
+    "rth-refs": {"rth_refs": True},
+}
 PILOT_SESSIONS = [date(2024, 9, 9) + timedelta(days=i) for i in range(12)]
 PILOT_SESSIONS = [d for d in PILOT_SESSIONS if d.weekday() < 5]  # 9–20 sep 2024
 
@@ -118,9 +124,14 @@ def run_task(args: dict) -> dict:
     end = to_utc_ns(day, dtime(12, 0), NEW_YORK)
     prior = {args["contract_id"]: (args["prior_high_ticks"], args["prior_low_ticks"])} if args.get("prior_high_ticks") is not None else {}
     t0 = time.perf_counter()
-    from trading_scanner.regimes import MacroCalendar
+    from trading_scanner.quality import GateConfig
+    from trading_scanner.regimes import MacroCalendar, RegimeParams
     macro = MacroCalendar.from_yaml(ROOT / "configs" / "sessions" / "macro_calendar_2024.yaml")
-    sr = SessionRunner(w, prior_levels=prior, event_start_ns=start, event_end_ns=end, macro=macro)
+    kw = {}
+    if VARIANTS[args.get("variant", "base")].get("rth_refs"):
+        kw = {"regime_params": RegimeParams(shock_from_ns=w.rth_open_ns), "f15_from_ns": w.rth_open_ns,
+              "gate_config_by_root": {"GC": GateConfig(aggressor_window_ns=300 * NS)}}
+    sr = SessionRunner(w, prior_levels=prior, event_start_ns=start, event_end_ns=end, macro=macro, **kw)
     sr.add_contract(spec, args["instrument_id"], [Path(args["file"])])
     runs = sr.run()
     r = runs[args["contract_id"]]
@@ -143,8 +154,15 @@ def main() -> int:
     ap.add_argument("--workers", type=int, default=5)
     ap.add_argument("--dates", default=None)
     ap.add_argument("--only-aggregates", action="store_true")
+    ap.add_argument("--variant", default="base", choices=sorted(VARIANTS))
     a = ap.parse_args()
+    global OUT
+    base_out = OUT
+    OUT = base_out if a.variant == "base" else ROOT / "artifacts" / f"pilot_{a.variant}"
     OUT.mkdir(parents=True, exist_ok=True)
+    agg_src = base_out / "daily_aggregates.json"
+    if a.variant != "base" and agg_src.is_file() and not (OUT / "daily_aggregates.json").is_file():
+        (OUT / "daily_aggregates.json").write_text(agg_src.read_text(encoding="utf-8"), encoding="utf-8")
 
     man = json.loads(MANIFEST.read_text(encoding="utf-8"))
     job_id = man["purchase"]["mbp-10"]["job_id"]
@@ -190,7 +208,7 @@ def main() -> int:
             selections[f"{d}/{root}"] = {"contract_id": cid, "volume": sel.volume, "volume_date": sel.volume_session_date.isoformat(),
                                          "prior_high_ticks": ph, "prior_low_ticks": pl}
             tasks.append({"date": d.isoformat(), "contract_id": cid, "instrument_id": ids[cid], "file": str(files[d]),
-                          "prior_high_ticks": ph, "prior_low_ticks": pl})
+                          "prior_high_ticks": ph, "prior_low_ticks": pl, "variant": a.variant})
     (OUT / "selections.json").write_text(json.dumps(selections, indent=1), encoding="utf-8")
     log(f"{len(tasks)} tareas (sesión × contrato)")
 

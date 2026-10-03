@@ -18,8 +18,8 @@ from trading_scanner.clock import SessionWindow
 from trading_scanner.contracts import ClassificationResult, ContractSpec, EventType, MarketEvent, Outcome
 from trading_scanner.execution import ExecParams, ExecutionSim
 from trading_scanner.features import FeatureEngine
-from trading_scanner.quality import QualityGate
-from trading_scanner.regimes import MacroCalendar, RegimeTracker
+from trading_scanner.quality import GateConfig, QualityGate
+from trading_scanner.regimes import MacroCalendar, RegimeParams, RegimeTracker
 from trading_scanner.replay.engine import Replay
 from trading_scanner.setups.liquidity_reversal import Level, LevelKind, LRContext, LRDetector, LRParams, LRSignal, Trade
 
@@ -46,6 +46,9 @@ class ContractRun:
     blocked_epochs: int = 0
     epochs: int = 0
     block_reasons: dict[str, int] = field(default_factory=dict)
+    window_epochs: int = 0
+    window_blocked_epochs: int = 0
+    window_block_reasons: dict[str, int] = field(default_factory=dict)
     last_snapshot_values: dict | None = None
 
 
@@ -53,8 +56,13 @@ class SessionRunner:
     def __init__(self, window: SessionWindow, *, lr_params_by_root: dict[str, LRParams] | None = None,
                  exec_params: ExecParams | None = None, prior_levels: dict[str, tuple[int, int]] | None = None,
                  event_start_ns: int | None = None, event_end_ns: int | None = None,
-                 macro: MacroCalendar | None = None, jev: JevClient | None = None) -> None:
+                 macro: MacroCalendar | None = None, jev: JevClient | None = None,
+                 gate_config_by_root: dict[str, GateConfig] | None = None, regime_params: RegimeParams | None = None,
+                 f15_from_ns: int | None = None) -> None:
         self.window = window
+        self.gate_config_by_root = gate_config_by_root or {}
+        self.regime_params = regime_params
+        self.f15_from_ns = f15_from_ns
         self.macro = macro
         self.jev = jev  # experimento B: si hay cliente, la orden se envía al "existir" la respuesta (<= TTL)
         self.event_start_ns = event_start_ns  # filtro barato del adapter (ts_recv); None = todo el archivo
@@ -66,11 +74,13 @@ class SessionRunner:
 
     def add_contract(self, spec: ContractSpec, instrument_id: int, files: list[Path]) -> None:
         eng = FeatureEngine(spec.contract_id, session_open_ns=self.window.rth_open_ns,
-                            opening_range_end_ns=self.window.opening_range_end_ns)
+                            opening_range_end_ns=self.window.opening_range_end_ns, f15_from_ns=self.f15_from_ns)
         if spec.contract_id in self.prior_levels:
             eng.set_prior_day_levels(*self.prior_levels[spec.contract_id])
         lr = LRDetector(spec.contract_id, self.lr_params_by_root.get(spec.root, LRParams()))
-        run = ContractRun(spec, instrument_id, files, QualityGate(spec.contract_id), eng, lr)
+        run = ContractRun(spec, instrument_id, files, QualityGate(spec.contract_id, self.gate_config_by_root.get(spec.root)), eng, lr)
+        if self.regime_params is not None:
+            run.regime = RegimeTracker(self.regime_params)
         # régimen y shock se alimentan al cierre de barra (nunca con la barra en formación)
         eng.bars_5m.on_finalize = lambda bar, r=run: r.regime.on_bar_5m_close(r.engine.bars_5m.finalized, bar.finalized_at_ns)
         eng.bars_1m.on_finalize = lambda bar, r=run: r.regime.on_bar_1m_close(r.engine.bars_1m.finalized, bar.finalized_at_ns)
@@ -199,6 +209,12 @@ class SessionRunner:
                 r.blocked_epochs += 1
                 for reason in reasons:
                     r.block_reasons[reason] = r.block_reasons.get(reason, 0) + 1
+            if self.window.accepts_new_entry(t):
+                r.window_epochs += 1
+                if reasons:
+                    r.window_blocked_epochs += 1
+                    for reason in reasons:
+                        r.window_block_reasons[reason] = r.window_block_reasons.get(reason, 0) + 1
             r.last_snapshot_values = r.engine.snapshot(t).values
             r.lr.on_time(t)
             if r.active is not None and r.active.done is None:
@@ -215,7 +231,8 @@ def summarize(runs: dict[str, ContractRun]) -> dict:
             "aggressor_known_pct": None if r.stats.aggressor_known_pct is None else round(r.stats.aggressor_known_pct, 3),
             "resets": r.stats.resets, "off_grid": r.stats.off_grid_prices, "provider_flags": r.gate.state.provider_flags,
             "sequence_jumps": r.gate.state.sequence_jumps, "epochs": r.epochs, "blocked_epochs": r.blocked_epochs,
-            "block_reasons": r.block_reasons, "bars_1m": len(r.engine.bars_1m.finalized),
+            "block_reasons": r.block_reasons, "window_epochs": r.window_epochs, "window_blocked_epochs": r.window_blocked_epochs,
+            "window_block_reasons": r.window_block_reasons, "bars_1m": len(r.engine.bars_1m.finalized),
             "late_revisions_1m": r.engine.bars_1m.late_revisions, "or": [r.engine.or_high, r.engine.or_low],
             "regime_history": [(t, reg.value) for t, reg in r.regime.history], "shocks": r.regime.shocks,
             "jev_classified": len(r.classifications), "jev_expired": r.jev_expired,
