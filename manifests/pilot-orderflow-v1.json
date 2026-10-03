@@ -9,14 +9,20 @@
     "NQ",
     "GC"
   ],
-  "resolved_contracts": [],
+  "resolved_contracts": [
+    "ESU4",
+    "ESZ4",
+    "NQU4",
+    "NQZ4",
+    "GCZ4"
+  ],
   "start_utc_inclusive": "2024-09-05T00:00:00Z",
   "end_utc_exclusive": "2024-09-21T00:00:00Z",
   "cost_estimate_usd": 64.47,
   "estimated_bytes": 138460000000,
   "license_verified": false,
   "derived_data_external_processing_allowed": null,
-  "download_status": "NOT_STARTED",
+  "download_status": "SUBMITTED",
   "estimate_checked_at": "2026-10-03T07:47:14+00:00",
   "stype_in": "raw_symbol",
   "candidate_contracts": {
@@ -28,5 +34,38 @@
     "GCZ4": 393,
     "GCG5": 1551
   },
-  "cost_estimate_note": "mbp-10, 7 outrights por raw_symbol, 2024-09-05..2024-09-21; cotizado 2026-10-03 antes de créditos. Con parent ES.FUT/NQ.FUT/GC.FUT (incluye spreads) 66.37 USD / 142.5 GB. Alternativas: mbp-1 32.54 USD / 19.4 GB; trades 15.75 USD / 0.6 GB."
+  "cost_estimate_note": "mbp-10, 7 outrights por raw_symbol, 2024-09-05..2024-09-21; cotizado 2026-10-03 antes de créditos. Con parent ES.FUT/NQ.FUT/GC.FUT (incluye spreads) 66.37 USD / 142.5 GB. Alternativas: mbp-1 32.54 USD / 19.4 GB; trades 15.75 USD / 0.6 GB.",
+  "purchase": {
+    "definition": {
+      "path": "data\\raw\\GLBX.MDP3\\definition\\GLBX.MDP3.definition.2024-09-05_2024-09-21.dbn.zst",
+      "bytes": 1236,
+      "sha256": "1d4568bcfa72afe8fe87be4d4d8bc56f943b9aaf41e2a2bfd785c8b1c156d652",
+      "fetched_at": "2026-10-03T07:53:33+00:00"
+    },
+    "status": {
+      "path": "data\\raw\\GLBX.MDP3\\status\\GLBX.MDP3.status.2024-09-05_2024-09-21.dbn.zst",
+      "bytes": 2825,
+      "sha256": "b13f697826a6edcbfbdcad1e50012ce17afc33c020d1782b90464dca19fb8ff0",
+      "fetched_at": "2026-10-03T07:53:33+00:00"
+    },
+    "mbp-10": {
+      "job_id": "GLBX-20261003-8EMSSXN9Y7",
+      "submitted_at": "2026-10-03T07:53:10+00:00",
+      "cost_usd": null,
+      "billed_size": null,
+      "state": "queued",
+      "files": {}
+    }
+  },
+  "dataset_condition": {
+    "checked_at": "2026-10-03",
+    "degraded_days": [
+      "2024-09-18"
+    ],
+    "source": "metadata.get_dataset_condition",
+    "file": "manifests/pilot-orderflow-v1.dataset-condition.json"
+  },
+  "notes": [
+    "2024-09-18 marcado 'degraded' por Databento: la sesión se audita aparte en ENG-04 y, si el quality gate la excluye, se reemplaza por la siguiente sesión válida del bloque train 2024 (protocolo §3.1). Coincide con FOMC (18-sep-2024), día bloqueado por el filtro macro §8 en todo caso."
+  ]
 }
