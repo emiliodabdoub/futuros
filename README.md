@@ -17,7 +17,8 @@ Decisiones de implementación: [docs/adr/](docs/adr/).
 |---|---|---|
 | ENG-01 Contratos y reloj inyectable | hecho | `src/trading_scanner/contracts`, `src/trading_scanner/clock` |
 | ENG-02 Registry y selección causal de contrato | hecho | `src/trading_scanner/registry` |
-| ENG-03 Adapter Databento | accesos OK, cotización hecha; falta verificar licencia y comprar muestra | `scripts/check_access.py`, `manifests/` |
+| ENG-03 Adapter Databento | hecho sobre fixture real de 1 min; validación sobre la muestra completa al terminar la descarga | `src/trading_scanner/adapters/market`, ADR-003 |
+| ENG-04 Normalización y quality gate | siguiente | — |
 | ENG-04..11 | pendiente | — |
 
 Accesos pendientes del usuario (protocolo §2): cuenta Databento (`DATABENTO_API_KEY`) y cuenta TypeSafe/Jev (`TYPESAFE_API_KEY`). Nunca en el repo.
