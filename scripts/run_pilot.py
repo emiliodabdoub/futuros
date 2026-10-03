@@ -5,7 +5,7 @@ Pasos:
  2. Agregados vectorizados por día e instrumento (numpy): volumen de sesión completa, high/low RTH
     (09:30–16:00 NY) y volumen RTH, contrastables contra ohlcv-1m. → artifacts/pilot/daily_aggregates.json
  3. Por sesión del piloto y por root: select_contract con el volumen de la sesión anterior (ADR-002).
- 4. Por (sesión, contrato): SessionRunner sobre la ventana 09:00–12:00 NY con niveles del día anterior
+ 4. Por (sesión, contrato): SessionRunner sobre la ventana 08:00–12:00 NY (warm-up incluido) con niveles del día anterior
     inyectados. Un proceso por tarea (multiprocessing). → artifacts/pilot/<fecha>/<contrato>.json
  5. Ledger de candidatos/outcomes (artifacts/pilot/candidates.jsonl) y reporte (artifacts/pilot/report.json).
 
@@ -113,11 +113,14 @@ def run_task(args: dict) -> dict:
     cat = InstrumentCatalog.from_yaml_dir(ROOT / "configs" / "instruments")
     spec = cat.get(args["contract_id"])
     w = pilot_window(day)
-    start = to_utc_ns(day, dtime(9, 0), NEW_YORK)
+    # 08:00 NY: warm-up de régimen (15 barras 5m = 75 min) y ATR 1m (60 barras) antes de la ventana 09:35
+    start = to_utc_ns(day, dtime(8, 0), NEW_YORK)
     end = to_utc_ns(day, dtime(12, 0), NEW_YORK)
     prior = {args["contract_id"]: (args["prior_high_ticks"], args["prior_low_ticks"])} if args.get("prior_high_ticks") is not None else {}
     t0 = time.perf_counter()
-    sr = SessionRunner(w, prior_levels=prior, event_start_ns=start, event_end_ns=end)
+    from trading_scanner.regimes import MacroCalendar
+    macro = MacroCalendar.from_yaml(ROOT / "configs" / "sessions" / "macro_calendar_2024.yaml")
+    sr = SessionRunner(w, prior_levels=prior, event_start_ns=start, event_end_ns=end, macro=macro)
     sr.add_contract(spec, args["instrument_id"], [Path(args["file"])])
     runs = sr.run()
     r = runs[args["contract_id"]]

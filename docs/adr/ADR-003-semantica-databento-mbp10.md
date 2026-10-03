@@ -37,4 +37,4 @@
 | Adapter → MarketEvent | 7,000 ev/s | ~30,000 ev/s | `to_ndarray(count=250k)` + columnas `.tolist()`; `BookLevel` pasa de modelo pydantic a `NamedTuple` (20 por evento); siempre con validación pydantic (más rápida que `model_construct`) |
 | QualityGate + FeatureEngine | 3,800 ev/s | ~150,000 ev/s | sumas acumuladas de la ventana de agresor en vez de recorrer la deque en cada evento |
 
-Estimación para la muestra: ES ≈ 47k registros/min en RTH → ventana 09:00–11:45 NY ≈ 8M eventos ≈ 5 min por contrato-día; 5 contratos × 10 sesiones ≈ 2 h en serie, ~30 min con un proceso por contrato. El adapter acepta `start_ns`/`end_ns` para saltar registros fuera de la ventana antes de construir el evento.
+Estimación para la muestra: ES ≈ 47k registros/min en RTH → ventana 08:00–12:00 NY (warm-up de régimen incluido) ≈ 10M eventos ≈ 6 min por contrato-día; 5 contratos × 10 sesiones ≈ 2 h en serie, ~30 min con un proceso por contrato. El adapter acepta `start_ns`/`end_ns` para saltar registros fuera de la ventana antes de construir el evento.

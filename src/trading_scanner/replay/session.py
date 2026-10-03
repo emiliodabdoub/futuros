@@ -18,6 +18,7 @@ from trading_scanner.contracts import ContractSpec, EventType, MarketEvent, Outc
 from trading_scanner.execution import ExecParams, ExecutionSim
 from trading_scanner.features import FeatureEngine
 from trading_scanner.quality import QualityGate
+from trading_scanner.regimes import MacroCalendar, RegimeTracker
 from trading_scanner.replay.engine import Replay
 from trading_scanner.setups.liquidity_reversal import Level, LevelKind, LRContext, LRDetector, LRParams, LRSignal, Trade
 
@@ -32,6 +33,7 @@ class ContractRun:
     gate: QualityGate
     engine: FeatureEngine
     lr: LRDetector
+    regime: RegimeTracker = field(default_factory=RegimeTracker)
     stats: AdapterStats = field(default_factory=AdapterStats)
     levels_set: bool = False
     signals: list[LRSignal] = field(default_factory=list)
@@ -46,8 +48,10 @@ class ContractRun:
 class SessionRunner:
     def __init__(self, window: SessionWindow, *, lr_params_by_root: dict[str, LRParams] | None = None,
                  exec_params: ExecParams | None = None, prior_levels: dict[str, tuple[int, int]] | None = None,
-                 event_start_ns: int | None = None, event_end_ns: int | None = None) -> None:
+                 event_start_ns: int | None = None, event_end_ns: int | None = None,
+                 macro: MacroCalendar | None = None) -> None:
         self.window = window
+        self.macro = macro
         self.event_start_ns = event_start_ns  # filtro barato del adapter (ts_recv); None = todo el archivo
         self.event_end_ns = event_end_ns
         self.lr_params_by_root = lr_params_by_root or {}
@@ -61,7 +65,11 @@ class SessionRunner:
         if spec.contract_id in self.prior_levels:
             eng.set_prior_day_levels(*self.prior_levels[spec.contract_id])
         lr = LRDetector(spec.contract_id, self.lr_params_by_root.get(spec.root, LRParams()))
-        self.runs[spec.contract_id] = ContractRun(spec, instrument_id, files, QualityGate(spec.contract_id), eng, lr)
+        run = ContractRun(spec, instrument_id, files, QualityGate(spec.contract_id), eng, lr)
+        # régimen y shock se alimentan al cierre de barra (nunca con la barra en formación)
+        eng.bars_5m.on_finalize = lambda bar, r=run: r.regime.on_bar_5m_close(r.engine.bars_5m.finalized, bar.finalized_at_ns)
+        eng.bars_1m.on_finalize = lambda bar, r=run: r.regime.on_bar_1m_close(r.engine.bars_1m.finalized, bar.finalized_at_ns)
+        self.runs[spec.contract_id] = run
 
     # ---- ejecución -------------------------------------------------------------------------------
     def run(self) -> dict[str, ContractRun]:
@@ -102,14 +110,15 @@ class SessionRunner:
             return
         if not r.levels_set and ev.available_at_ns >= self.window.entry_start_ns:
             self._set_levels(r)
-        if not r.levels_set or st.blocked:
+        if not r.levels_set:
             return
+        blocked = tuple(st.reasons) + r.regime.blocked_reasons(ev.available_at_ns) + (self.macro.blocked_reasons(ev.available_at_ns) if self.macro else ())
         # F15 en el instante: volumen del bloque 5s actual desde el engine
         cur = r.engine._cur_block[1] if r.engine._cur_block else None
         v = r.last_snapshot_values or {}
         ctx = LRContext(atr_1m_ticks=v.get("F03_atr14_1m"), delta_ratio_5s=self._delta_now(r, ev.available_at_ns),
                         volume_5s=cur, volume_5s_median=v.get("F15_median_5s"), spread_ticks=snap.spread_ticks if snap else None,
-                        in_entry_window=self.window.accepts_new_entry(ev.available_at_ns), blocked_reasons=())
+                        in_entry_window=self.window.accepts_new_entry(ev.available_at_ns), blocked_reasons=blocked)
         sigs = r.lr.on_trade(Trade(ev.available_at_ns, ev.price_ticks, ev.size_contracts or 0), ctx)
         for s in sigs:
             r.signals.append(s)
@@ -139,9 +148,10 @@ class SessionRunner:
         for r in self.runs.values():
             r.epochs += 1
             st = r.gate.check_staleness(t)
-            if st.blocked:
+            reasons = tuple(st.reasons) + r.regime.blocked_reasons(t) + (self.macro.blocked_reasons(t) if self.macro else ())
+            if reasons:
                 r.blocked_epochs += 1
-                for reason in st.reasons:
+                for reason in reasons:
                     r.block_reasons[reason] = r.block_reasons.get(reason, 0) + 1
             r.last_snapshot_values = r.engine.snapshot(t).values
             r.lr.on_time(t)
@@ -161,6 +171,7 @@ def summarize(runs: dict[str, ContractRun]) -> dict:
             "sequence_jumps": r.gate.state.sequence_jumps, "epochs": r.epochs, "blocked_epochs": r.blocked_epochs,
             "block_reasons": r.block_reasons, "bars_1m": len(r.engine.bars_1m.finalized),
             "late_revisions_1m": r.engine.bars_1m.late_revisions, "or": [r.engine.or_high, r.engine.or_low],
+            "regime_history": [(t, reg.value) for t, reg in r.regime.history], "shocks": r.regime.shocks,
             "lr_transitions": len(r.lr.transitions), "lr_rejections": {}, "signals": len(r.signals),
             "outcomes": {o.terminal_reason.value: sum(1 for x in outs if x.terminal_reason is o.terminal_reason) for o in outs},
             "pnl_usd_net": str(pnl),

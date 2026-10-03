@@ -1,0 +1,16 @@
+# Calendario macro de INVESTIGACIÓN para la muestra piloto (protocolo §8). Lista versionada de eventos
+# USD de alta relevancia. verified=false: fechas/horas tomadas de memoria de diseño; contrastar con el
+# organismo emisor (BLS, BEA, Fed) antes de un experimento formal. point_in_time=false: es el calendario
+# final, no el conocido as-of cada sesión → resultados exploratorios con sensibilidad sin este filtro.
+version: macro-2024-09-v1
+verified: false
+point_in_time: false
+timezone: America/New_York
+block_before_min: 5
+block_after_min: 10
+events:
+  - {name: "Employment Situation (Aug 2024)", category: EMPLOYMENT, date: 2024-09-06, time: "08:30"}
+  - {name: "CPI (Aug 2024)", category: CPI, date: 2024-09-11, time: "08:30"}
+  - {name: "FOMC decision/statement", category: FOMC, date: 2024-09-18, time: "14:00"}
+  - {name: "GDP Q2 third estimate", category: GDP, date: 2024-09-26, time: "08:30"}
+  - {name: "PCE (Aug 2024)", category: PCE, date: 2024-09-27, time: "08:30"}
