@@ -22,7 +22,7 @@
   "estimated_bytes": 138460000000,
   "license_verified": false,
   "derived_data_external_processing_allowed": null,
-  "download_status": "DOWNLOADING",
+  "download_status": "DOWNLOADED",
   "estimate_checked_at": "2026-10-03T07:47:14+00:00",
   "stype_in": "raw_symbol",
   "candidate_contracts": {
@@ -54,7 +54,79 @@
       "cost_usd": null,
       "billed_size": null,
       "state": "done",
-      "files": {}
+      "files": {
+        "condition.json": {
+          "bytes": 1681,
+          "sha256": "222036a7a69f49a277c059d6b3a925026711a4e9f6bb43c90de83b220eb62472"
+        },
+        "glbx-mdp3-20240905.mbp-10.dbn.zst": {
+          "bytes": 822351210,
+          "sha256": "22eac30e3b99774c079a245ad2bd557971d5433dd2c758a051101dde2b2907ad"
+        },
+        "glbx-mdp3-20240906.mbp-10.dbn.zst": {
+          "bytes": 1074591447,
+          "sha256": "ad95b3115652976811ecda187510b2e069bf5f282edad92a4c2e0c4254395e97"
+        },
+        "glbx-mdp3-20240908.mbp-10.dbn.zst": {
+          "bytes": 21741255,
+          "sha256": "5fc9b450b04e3dd2de4d7199056b142ca41443a0254c56b2b62868b75631cfae"
+        },
+        "glbx-mdp3-20240909.mbp-10.dbn.zst": {
+          "bytes": 709868304,
+          "sha256": "fe2d81d1e828650659e3dc039f80a0a2c4daed98924c2451a4706b9d9d40a3c3"
+        },
+        "glbx-mdp3-20240910.mbp-10.dbn.zst": {
+          "bytes": 765461998,
+          "sha256": "a145d152946ee604a95c97a1d9ed2cbfe967def17d4b4dd808c4c906fcbe1ec4"
+        },
+        "glbx-mdp3-20240911.mbp-10.dbn.zst": {
+          "bytes": 1047111546,
+          "sha256": "e0f1dcdc1439f329a0ff043085191658141b8c24fc93e94918fdf3846bbeb7a8"
+        },
+        "glbx-mdp3-20240912.mbp-10.dbn.zst": {
+          "bytes": 982881180,
+          "sha256": "31943d8fbc5bc72e119702986a05454c18cfecdbfcf4b3d08086582dfe0fea13"
+        },
+        "glbx-mdp3-20240913.mbp-10.dbn.zst": {
+          "bytes": 946869875,
+          "sha256": "db4628cd8c9832d7bf9ef0e978f62ca33469613c926e62be79c5e208755b06a1"
+        },
+        "glbx-mdp3-20240915.mbp-10.dbn.zst": {
+          "bytes": 18487437,
+          "sha256": "770b60dd323b41705c49e3eb0cd008fb6180c5896f3485c19e7f193e21b74cd6"
+        },
+        "glbx-mdp3-20240916.mbp-10.dbn.zst": {
+          "bytes": 890558024,
+          "sha256": "a21fe2270fbd32d3ddd499e6805715fca7416c008d5ae9284e88653dfadc5b7a"
+        },
+        "glbx-mdp3-20240917.mbp-10.dbn.zst": {
+          "bytes": 1213236380,
+          "sha256": "255d1838ed165271770361c8e29bbc1ff1e1ee70378f1e87d787350a415d4a8b"
+        },
+        "glbx-mdp3-20240918.mbp-10.dbn.zst": {
+          "bytes": 1055528672,
+          "sha256": "dc09c4f55cd7cb6639ceb561845976165c5a05d30a15573b5be567a536d77933"
+        },
+        "glbx-mdp3-20240919.mbp-10.dbn.zst": {
+          "bytes": 1015949218,
+          "sha256": "dfb368289e07068edacbc32cfb06ffbb1b7eeafccd697fabe22720b84b8ff9dc"
+        },
+        "glbx-mdp3-20240920.mbp-10.dbn.zst": {
+          "bytes": 569786247,
+          "sha256": "9a7eb43c1efe21ed8e91c11c90260e65efb212883729d0be3e661145f8fc2adb"
+        },
+        "manifest.json": {
+          "bytes": 7956,
+          "sha256": "edec20d54368bc49a2d5c69d1fdef0ea64e3b8c829575b7de4e616a8fdfc768e"
+        },
+        "metadata.json": {
+          "bytes": 769,
+          "sha256": "91dd1b046cea7f110232471f2d54e3aa7fa20a898cdef069639686ea9fe9b224"
+        }
+      },
+      "downloaded_at": "2026-10-03T08:47:42+00:00",
+      "total_bytes_on_disk": 11134433199
     }
-  }
+  },
+  "manifest_sha256": "ce6f6884bf67845fd97fa09fd6a13d986337f06d5d2bb671b2a8306a1b0d6d36"
 }

@@ -49,7 +49,7 @@ def discover_files(job_dir: Path) -> dict[date, Path]:
     import databento as db
 
     out: dict[date, Path] = {}
-    for f in sorted(job_dir.glob("*.dbn.zst")):
+    for f in sorted(job_dir.rglob("*.dbn.zst")):
         m = re.search(r"(\d{8})", f.name)
         if m:
             d = datetime.strptime(m.group(1), "%Y%m%d").date()
