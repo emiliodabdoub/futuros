@@ -11,6 +11,9 @@ dependencies = [
   "pydantic>=2.7,<3",
   "pyyaml>=6",
   "tzdata>=2024.1",
+  "numpy>=1.26",
+  "databento>=0.40",
+  "requests>=2.31",
 ]
 
 [project.optional-dependencies]

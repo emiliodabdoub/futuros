@@ -24,7 +24,9 @@ Decisiones de implementación: [docs/adr/](docs/adr/).
 | ENG-07 EXEC-v1 simulador y etiquetado | hecho (IOC/NO_FILL/gap/timeout/prioridad/emergency) | `src/trading_scanner/execution` |
 | ENG-08 Jev adapter con caché, deadline y validación | hecho con transporte simulado; datos reales hacia Jev bloqueados por licencia | `src/trading_scanner/adapters/jev` |
 | Orquestador de sesión (adapter→gate→features→LR→exec) | hecho; validación sobre la muestra completa pendiente de descarga | `src/trading_scanner/replay/session.py` |
-| ENG-09..11 | pendiente | — |
+| ENG-09 Splits/purga/embargo, modelo base, temperatura, métricas | hecho (lógica); entrenamiento real requiere outcomes de la muestra | `src/trading_scanner/training`, `src/trading_scanner/models` |
+| ENG-10 Ranking RAEV + NO TRADE + risk engine paper | hecho (lógica); dashboard pendiente | `src/trading_scanner/scanner`, `src/trading_scanner/risk` |
+| ENG-11 TC-v1 y BO-v1 | pendiente (tras revisar LR en la muestra) | — |
 | ENG-04..11 | pendiente | — |
 
 Accesos pendientes del usuario (protocolo §2): cuenta Databento (`DATABENTO_API_KEY`) y cuenta TypeSafe/Jev (`TYPESAFE_API_KEY`). Nunca en el repo.
