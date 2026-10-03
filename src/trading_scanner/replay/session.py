@@ -45,8 +45,11 @@ class ContractRun:
 
 class SessionRunner:
     def __init__(self, window: SessionWindow, *, lr_params_by_root: dict[str, LRParams] | None = None,
-                 exec_params: ExecParams | None = None, prior_levels: dict[str, tuple[int, int]] | None = None) -> None:
+                 exec_params: ExecParams | None = None, prior_levels: dict[str, tuple[int, int]] | None = None,
+                 event_start_ns: int | None = None, event_end_ns: int | None = None) -> None:
         self.window = window
+        self.event_start_ns = event_start_ns  # filtro barato del adapter (ts_recv); None = todo el archivo
+        self.event_end_ns = event_end_ns
         self.lr_params_by_root = lr_params_by_root or {}
         self.exec_params = exec_params or ExecParams()
         self.prior_levels = prior_levels or {}
@@ -65,7 +68,7 @@ class SessionRunner:
         streams = []
         for r in self.runs.values():
             streams.append(self._stream(r))
-        rp = Replay(streams, stop_at_ns=self.window.rth_close_ns)
+        rp = Replay(streams, stop_at_ns=self.event_end_ns or self.window.rth_close_ns)
         rp.run(self._on_event, self._on_epoch)
         for r in self.runs.values():
             if r.active is not None and r.active.done is None:
@@ -74,7 +77,8 @@ class SessionRunner:
 
     def _stream(self, r: ContractRun):
         for f in r.files:
-            yield from iter_mbp10_events(f, r.spec, r.instrument_id, stats=r.stats)
+            yield from iter_mbp10_events(f, r.spec, r.instrument_id, stats=r.stats,
+                                         start_ns=self.event_start_ns, end_ns=self.event_end_ns)
 
     def _ctx(self, r: ContractRun, now: int) -> LRContext:
         v = r.last_snapshot_values or {}
