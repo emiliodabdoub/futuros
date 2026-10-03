@@ -12,9 +12,10 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
 
+from trading_scanner.adapters.jev import JevClient, build_state
 from trading_scanner.adapters.market import AdapterStats, iter_mbp10_events
 from trading_scanner.clock import SessionWindow
-from trading_scanner.contracts import ContractSpec, EventType, MarketEvent, Outcome
+from trading_scanner.contracts import ClassificationResult, ContractSpec, EventType, MarketEvent, Outcome
 from trading_scanner.execution import ExecParams, ExecutionSim
 from trading_scanner.features import FeatureEngine
 from trading_scanner.quality import QualityGate
@@ -39,6 +40,9 @@ class ContractRun:
     signals: list[LRSignal] = field(default_factory=list)
     outcomes: list[Outcome] = field(default_factory=list)
     active: ExecutionSim | None = None
+    classifications: dict[str, ClassificationResult] = field(default_factory=dict)
+    pending_b: list[tuple[LRSignal, int]] = field(default_factory=list)  # (señal, received_at) esperando a enviar
+    jev_expired: int = 0
     blocked_epochs: int = 0
     epochs: int = 0
     block_reasons: dict[str, int] = field(default_factory=dict)
@@ -49,9 +53,10 @@ class SessionRunner:
     def __init__(self, window: SessionWindow, *, lr_params_by_root: dict[str, LRParams] | None = None,
                  exec_params: ExecParams | None = None, prior_levels: dict[str, tuple[int, int]] | None = None,
                  event_start_ns: int | None = None, event_end_ns: int | None = None,
-                 macro: MacroCalendar | None = None) -> None:
+                 macro: MacroCalendar | None = None, jev: JevClient | None = None) -> None:
         self.window = window
         self.macro = macro
+        self.jev = jev  # experimento B: si hay cliente, la orden se envía al "existir" la respuesta (<= TTL)
         self.event_start_ns = event_start_ns  # filtro barato del adapter (ts_recv); None = todo el archivo
         self.event_end_ns = event_end_ns
         self.lr_params_by_root = lr_params_by_root or {}
@@ -122,12 +127,53 @@ class SessionRunner:
         sigs = r.lr.on_trade(Trade(ev.available_at_ns, ev.price_ticks, ev.size_contracts or 0), ctx)
         for s in sigs:
             r.signals.append(s)
-            if r.active is None and snap is not None:  # una posición por contrato (D07: una total → ENG-10)
-                r.active = ExecutionSim(s, s.id, params=self.exec_params, tick_value_usd=r.spec.tick_value,
-                                        send_at_ns=ev.available_at_ns, book_at_send=snap, flat_by_ns=self.window.flat_by_ns)
-                if r.active.done is not None:
-                    r.outcomes.append(r.active.done)
-                    r.active = None
+            if self.jev is None:
+                self._send(r, s, ev.available_at_ns, snap)
+            else:
+                self._classify(r, s, snap)
+        self._flush_pending_b(r, ev.available_at_ns, snap)
+
+    def _send(self, r: ContractRun, s: LRSignal, at_ns: int, snap: BookSnapshot | None) -> None:
+        if r.active is None and snap is not None:  # una posición por contrato (D07: una total → ENG-10)
+            r.active = ExecutionSim(s, s.id, params=self.exec_params, tick_value_usd=r.spec.tick_value,
+                                    send_at_ns=at_ns, book_at_send=snap, flat_by_ns=self.window.flat_by_ns)
+            if r.active.done is not None:
+                r.outcomes.append(r.active.done)
+                r.active = None
+
+    def _classify(self, r: ContractRun, s: LRSignal, snap: BookSnapshot | None) -> None:
+        """Experimento B: una llamada por candidato con el snapshot congelado; la respuesta solo existe en
+        received_at. Si llega después del TTL o falla, el candidato expira (sin retry, sin fallback a A)."""
+        assert self.jev is not None
+        fs = r.engine.snapshot(max(s.created_at_ns, r.engine.max_input_available_ns))
+        bars = [{"o": b.open, "h": b.high, "l": b.low, "c": b.close, "v": b.volume} for b in r.engine.bars_1m.finalized[-12:]]
+        depth = {"bid": [[l.price_ticks, l.size_contracts] for l in snap.bids[:5]], "ask": [[l.price_ticks, l.size_contracts] for l in snap.asks[:5]]} if snap else None
+        state = build_state(s, fs, bars, depth, {"flags": list(r.gate.state.reasons), "aggressor_known_pct": r.gate.state.aggressor_known_pct})
+        res = self.jev.classify(s.id, state, s.created_at_ns, result_id=f"cls-{s.id}")
+        r.classifications[s.id] = res
+        if res.validation_status != "OK" or res.received_at_ns is None or res.received_at_ns > s.expires_at_ns:
+            r.jev_expired += 1
+            return
+        r.pending_b.append((s, res.received_at_ns))
+
+    def _flush_pending_b(self, r: ContractRun, now_ns: int, snap: BookSnapshot | None) -> None:
+        if not r.pending_b or snap is None:
+            return
+        keep = []
+        for s, received_at in r.pending_b:
+            if now_ns < received_at:
+                keep.append((s, received_at))
+                continue
+            if now_ns > s.expires_at_ns:
+                r.jev_expired += 1
+                continue
+            # la referencia no debe haberse alejado > 2 ticks del trigger (spec §5.2 paso 6)
+            ref = snap.best_ask if s.direction.value == "LONG" else snap.best_bid
+            if ref is None or abs(ref - s.trigger_price_ticks) > 2:
+                r.jev_expired += 1
+                continue
+            self._send(r, s, now_ns, snap)
+        r.pending_b = keep
 
     def _delta_now(self, r: ContractRun, now: int) -> float | None:
         _, ratio, _ = r.engine._delta(now, 5)
@@ -172,6 +218,7 @@ def summarize(runs: dict[str, ContractRun]) -> dict:
             "block_reasons": r.block_reasons, "bars_1m": len(r.engine.bars_1m.finalized),
             "late_revisions_1m": r.engine.bars_1m.late_revisions, "or": [r.engine.or_high, r.engine.or_low],
             "regime_history": [(t, reg.value) for t, reg in r.regime.history], "shocks": r.regime.shocks,
+            "jev_classified": len(r.classifications), "jev_expired": r.jev_expired,
             "lr_transitions": len(r.lr.transitions), "lr_rejections": {}, "signals": len(r.signals),
             "outcomes": {o.terminal_reason.value: sum(1 for x in outs if x.terminal_reason is o.terminal_reason) for o in outs},
             "pnl_usd_net": str(pnl),
