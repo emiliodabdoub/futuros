@@ -23,7 +23,7 @@ Decisiones de implementación: [docs/adr/](docs/adr/).
 | ENG-06 LR-v1 máquina de estados y candidatos READY | hecho (ejemplo positivo + 6 rechazos + cooldown/fusión/duplicados/conflicto/short) | `src/trading_scanner/setups/liquidity_reversal` |
 | ENG-07 EXEC-v1 simulador y etiquetado | hecho (IOC/NO_FILL/gap/timeout/prioridad/emergency) | `src/trading_scanner/execution` |
 | ENG-08 Jev adapter con caché, deadline y validación | hecho con transporte simulado; datos reales hacia Jev bloqueados por licencia | `src/trading_scanner/adapters/jev` |
-| Orquestador de sesión (adapter→gate→features→LR→exec) | hecho; validación sobre la muestra completa pendiente de descarga | `src/trading_scanner/replay/session.py` |
+| Orquestador de sesión + piloto completo | hecho y corrido sobre 10 sesiones × 3 contratos; informe en `docs/PILOTO-2026-10-03-informe.md` | `src/trading_scanner/replay/session.py`, `scripts/run_pilot.py` |
 | ENG-09 Splits/purga/embargo, modelo base, temperatura, métricas | hecho (lógica); entrenamiento real requiere outcomes de la muestra | `src/trading_scanner/training`, `src/trading_scanner/models` |
 | ENG-10 Ranking RAEV + NO TRADE + risk engine paper | hecho (lógica); dashboard pendiente | `src/trading_scanner/scanner`, `src/trading_scanner/risk` |
 | ENG-11 TC-v1 y BO-v1 | hecho, DESHABILITADOS por defecto (D06); se activan en experimento propio | `src/trading_scanner/setups/{trend_continuation,breakout}` |

@@ -302,7 +302,7 @@ El informe incluirá un cuadro de evidencia:
 - [ ] Licencia y envío de derivados a IA verificados.
 - [x] Cotización y cobertura de muestra confirmadas (3-oct-2026, ver `docs/ACCESOS-2026-10-03.md`).
 - [x] Primera prueba autenticada de cada servicio completada (3-oct-2026, `scripts/check_access.py`).
-- [ ] Muestra auditada y factibilidad real demostrada.
+- [x] Muestra auditada y factibilidad real demostrada (3-oct-2026, `docs/PILOTO-2026-10-03-informe.md`).
 
 **Estado de salida:** preparados para verificar accesos y empezar ingeniería; la fase 0 completa sigue pendiente de sus comprobaciones externas. La primera acción del usuario es crear ambas cuentas. Después se podrán configurar las claves localmente y obtener la cotización sin exponer secretos en el chat.
 
