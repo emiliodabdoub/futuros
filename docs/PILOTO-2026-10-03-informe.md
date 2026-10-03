@@ -217,3 +217,26 @@ Por dirección: {'LONG': 3, 'SHORT': 3} · por contrato: {'GCZ4': 4, 'NQU4': 1, 
 **Rollover:** la regla de 5 sesiones al corte (ADR-002) rodó ES/NQ a Z4 el 13-sep; el mercado rodó el 16-sep. El 13-sep se operó Z4 con un cuarto del volumen del U4. Sensibilidad pendiente: 3 sesiones.
 
 **Siguiente puerta (protocolo §6.4, ingeniería → entrenamiento):** causalidad y determinismo pasan en suite; datos/contratos/unidades válidos; etiquetas de referencia auditadas sobre 6 outcomes. Falta: decidir los puntos pendientes de arriba como LR-v2 preregistrada, y adquirir historia suficiente (la muestra actual no da soporte para modelar).
+
+## 8. Sensibilidad preregistrada: controles de datos con referencias solo de RTH (`--variant rth-refs`)
+
+LR-v1 sin cambios. Solo cambian tres controles de datos: ATR de referencia del shock calculado con barras desde 09:30 NY; mediana de F15 con bloques de 5 s desde 09:30 NY; ventana de agresor de GC de 300 s (ES/NQ 60 s). Cobertura medida dentro de la ventana de entradas 09:35–11:30 (69,000 epochs por root = 10 sesiones × 6,900 s).
+
+| Métrica | base | rth-refs |
+|---|---:|---:|
+| Epochs bloqueados en ventana ES | 2366/69000 (3.4%) | 1517/69000 (2.2%) |
+| Epochs bloqueados en ventana NQ | 2710/69000 (3.9%) | 1200/69000 (1.7%) |
+| Epochs bloqueados en ventana GC | 3692/69000 (5.4%) | 1075/69000 (1.6%) |
+| ventana · VOL_SHOCK | 6140 | 3300 |
+| ventana · AGGRESSOR_UNKNOWN_HIGH | 2619 | 483 |
+| ventana · CROSSED_BOOK_PERSISTENT / STALE_FEED | 4 / 5 | 4 / 5 |
+| Señales READY | 6 | 5 |
+| rechazo · VOLUME_REFERENCE_MISSING | 0 | 12 |
+| outcomes STOP / TARGET | 4 / 2 | 3 / 2 |
+| P&L neto contrafactual (USD) | −126 | −20 |
+
+**Lectura.** Las referencias de RTH recuperan entre 1.2 y 3.8 puntos de cobertura por contrato (GC es el más afectado por el agresor en 60 s). El costo es que F15 no existe hasta 09:38:20 (100 bloques de 5 s desde 09:30): 12 intentos de LR en los primeros minutos se rechazan por `VOLUME_REFERENCE_MISSING`, y desaparece el candidato de GC del 10-sep. La diferencia de P&L (−126 vs −20) es un solo trade y no significa nada. **Decisión para LR-v2 (preregistrar antes de comprar historia):** adoptar rth-refs y decidir si el mínimo de 100 bloques de F15 baja a 60 (09:35) o se mantiene.
+
+**Reproducibilidad en datos reales:** dos corridas independientes de la variante base producen exactamente los mismos 6 candidatos y outcomes.
+
+**Gotcha operativo:** dos corridas del piloto en paralelo (2 × 3 workers) se quedaron sin avanzar durante 35 min (58 s de CPU por worker); una sola corrida con 5 workers termina 30 tareas en 20 min. Correr las variantes en serie.
