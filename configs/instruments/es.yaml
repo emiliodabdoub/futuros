@@ -1,0 +1,23 @@
+# E-mini S&P 500 (CME). metadata_verified=false: fechas y símbolos deben contrastarse con las
+# definitions del proveedor (ENG-03) antes de usarse en un manifiesto. Valores públicos de tick:
+# 0.25 puntos × 50 USD/punto = 12.50 USD/tick.
+venue: CME
+root: ES
+tick_size: "0.25"
+point_value: "50"
+tick_value: "12.50"
+currency: USD
+metadata_verified: false
+contracts:
+  - contract_id: ESU4
+    expiry: 2024-09-20
+    last_trading_date: 2024-09-20
+  - contract_id: ESZ4
+    expiry: 2024-12-20
+    last_trading_date: 2024-12-20
+  - contract_id: ESH5
+    expiry: 2025-03-21
+    last_trading_date: 2025-03-21
+  - contract_id: ESM5
+    expiry: 2025-06-20
+    last_trading_date: 2025-06-20

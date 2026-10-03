@@ -1,0 +1,16 @@
+{
+  "request_id": "pilot-orderflow-v1",
+  "provider": "Databento",
+  "dataset": "GLBX.MDP3",
+  "dataset_verified": false,
+  "schema": "mbp-10",
+  "roots": ["ES", "NQ", "GC"],
+  "resolved_contracts": [],
+  "start_utc_inclusive": "2024-09-05T00:00:00Z",
+  "end_utc_exclusive": "2024-09-21T00:00:00Z",
+  "cost_estimate_usd": null,
+  "estimated_bytes": null,
+  "license_verified": false,
+  "derived_data_external_processing_allowed": null,
+  "download_status": "NOT_STARTED"
+}

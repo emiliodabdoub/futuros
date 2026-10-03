@@ -1,0 +1,21 @@
+# E-mini Nasdaq-100 (CME). metadata_verified=false (ver es.yaml). 0.25 × 20 USD = 5.00 USD/tick.
+venue: CME
+root: NQ
+tick_size: "0.25"
+point_value: "20"
+tick_value: "5.00"
+currency: USD
+metadata_verified: false
+contracts:
+  - contract_id: NQU4
+    expiry: 2024-09-20
+    last_trading_date: 2024-09-20
+  - contract_id: NQZ4
+    expiry: 2024-12-20
+    last_trading_date: 2024-12-20
+  - contract_id: NQH5
+    expiry: 2025-03-21
+    last_trading_date: 2025-03-21
+  - contract_id: NQM5
+    expiry: 2025-06-20
+    last_trading_date: 2025-06-20

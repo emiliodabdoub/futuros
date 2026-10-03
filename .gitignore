@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+data/
+artifacts/
+*.dbn
+*.dbn.zst
+*.parquet
+.env
+*.egg-info/
+build/
+dist/

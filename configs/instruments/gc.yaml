@@ -1,0 +1,27 @@
+# Gold (COMEX). metadata_verified=false: GC tiene vencimientos mensuales y FIRST NOTICE; las fechas
+# de abajo son aproximaciones de diseño y DEBEN sustituirse por definitions reales en ENG-03.
+# 0.10 USD/oz × 100 oz = 10.00 USD/tick.
+venue: COMEX
+root: GC
+tick_size: "0.10"
+point_value: "100"
+tick_value: "10.00"
+currency: USD
+metadata_verified: false
+contracts:
+  - contract_id: GCV4
+    expiry: 2024-10-29
+    first_notice_date: 2024-09-30
+    last_trading_date: 2024-10-29
+  - contract_id: GCZ4
+    expiry: 2024-12-27
+    first_notice_date: 2024-11-29
+    last_trading_date: 2024-12-27
+  - contract_id: GCG5
+    expiry: 2025-02-26
+    first_notice_date: 2025-01-31
+    last_trading_date: 2025-02-26
+  - contract_id: GCJ5
+    expiry: 2025-04-28
+    first_notice_date: 2025-03-31
+    last_trading_date: 2025-04-28
