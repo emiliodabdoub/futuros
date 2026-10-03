@@ -22,7 +22,9 @@ Decisiones de implementación: [docs/adr/](docs/adr/).
 | ENG-05 Replay causal, barras y features v1 | hecho (determinismo + futuro no cambia pasado); validar en muestra completa | `src/trading_scanner/replay`, `src/trading_scanner/features` |
 | ENG-06 LR-v1 máquina de estados y candidatos READY | hecho (ejemplo positivo + 6 rechazos + cooldown/fusión/duplicados/conflicto/short) | `src/trading_scanner/setups/liquidity_reversal` |
 | ENG-07 EXEC-v1 simulador y etiquetado | hecho (IOC/NO_FILL/gap/timeout/prioridad/emergency) | `src/trading_scanner/execution` |
-| ENG-08 Jev adapter/caché/rúbricas | siguiente (bloquea licencia de datos derivados) | `configs/questions` |
+| ENG-08 Jev adapter con caché, deadline y validación | hecho con transporte simulado; datos reales hacia Jev bloqueados por licencia | `src/trading_scanner/adapters/jev` |
+| Orquestador de sesión (adapter→gate→features→LR→exec) | hecho; validación sobre la muestra completa pendiente de descarga | `src/trading_scanner/replay/session.py` |
+| ENG-09..11 | pendiente | — |
 | ENG-04..11 | pendiente | — |
 
 Accesos pendientes del usuario (protocolo §2): cuenta Databento (`DATABENTO_API_KEY`) y cuenta TypeSafe/Jev (`TYPESAFE_API_KEY`). Nunca en el repo.
