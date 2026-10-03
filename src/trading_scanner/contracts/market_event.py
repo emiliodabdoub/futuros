@@ -1,16 +1,19 @@
 """Evento de mercado normalizado (spec §3.2)."""
 
+from typing import NamedTuple
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from trading_scanner.contracts.common import SCHEMA_VERSION, Aggressor, EventType
 
 
-class BookLevel(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
+class BookLevel(NamedTuple):
+    """Nivel de libro. NamedTuple (no pydantic) porque se construyen ~20 por evento en el hot path:
+    inmutable, con nombres, y pydantic lo valida igual dentro de MarketEvent."""
 
     price_ticks: int
-    size_contracts: int = Field(ge=0)
-    order_count: int | None = Field(default=None, ge=0)
+    size_contracts: int
+    order_count: int | None = None
 
 
 class MarketEvent(BaseModel):

@@ -61,6 +61,8 @@ class QualityGate:
         self._crossed_since: int | None = None
         self._trading: bool | None = None
         self._trades: deque[tuple[int, int, bool]] = deque()  # (available_at, size, known)
+        self._vol = 0  # sumas acumuladas de la ventana (evitar O(n) por evento)
+        self._known = 0
         self._was_blocked = False
 
     # ---- eventos -------------------------------------------------------------------------------
@@ -98,10 +100,17 @@ class QualityGate:
 
         # Trades → ventana de agresor
         if ev.event_type is EventType.TRADE and ev.size_contracts:
-            self._trades.append((ev.available_at_ns, ev.size_contracts, ev.aggressor is not Aggressor.UNKNOWN))
+            known = ev.aggressor is not Aggressor.UNKNOWN
+            self._trades.append((ev.available_at_ns, ev.size_contracts, known))
+            self._vol += ev.size_contracts
+            if known:
+                self._known += ev.size_contracts
         cutoff = ev.available_at_ns - self.cfg.aggressor_window_ns
         while self._trades and self._trades[0][0] < cutoff:
-            self._trades.popleft()
+            _, sz, kn = self._trades.popleft()
+            self._vol -= sz
+            if kn:
+                self._known -= sz
 
         # Libro
         snap = self.book.apply(ev)
@@ -140,8 +149,7 @@ class QualityGate:
         if self._trading is False:
             reasons.append("NOT_TRADING")
 
-        vol = sum(s for _, s, _ in self._trades)
-        known = sum(s for _, s, k in self._trades if k)
+        vol, known = self._vol, self._known
         st.aggressor_known_pct = (100.0 * known / vol) if vol else None
         if vol >= self.cfg.min_aggressor_volume and st.aggressor_known_pct is not None \
                 and st.aggressor_known_pct < self.cfg.min_aggressor_known_pct:

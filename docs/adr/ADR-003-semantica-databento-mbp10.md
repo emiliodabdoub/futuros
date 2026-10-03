@@ -29,3 +29,12 @@
 - El límite de evento para el replay es `F_LAST`: las barras/features deben consumir hasta el registro con `F_LAST` antes de considerar el libro consistente.
 - `status` se mapea aparte (`iter_status_events`) con `IS_TRADING`/`IS_QUOTING`; los cierres diarios de 21:00Z aparecen como `is_trading = N`.
 - El fixture y los archivos raw son datos licenciados: viven en `data/` fuera de git; los tests de integración se omiten si no están.
+
+## Rendimiento (medido 3-oct-2026 sobre el fixture de 47,146 registros)
+
+| Etapa | Antes | Después | Cambio |
+|---|---:|---:|---|
+| Adapter → MarketEvent | 7,000 ev/s | ~30,000 ev/s | `to_ndarray(count=250k)` + columnas `.tolist()`; `BookLevel` pasa de modelo pydantic a `NamedTuple` (20 por evento); siempre con validación pydantic (más rápida que `model_construct`) |
+| QualityGate + FeatureEngine | 3,800 ev/s | ~150,000 ev/s | sumas acumuladas de la ventana de agresor en vez de recorrer la deque en cada evento |
+
+Estimación para la muestra: ES ≈ 47k registros/min en RTH → ventana 09:00–11:45 NY ≈ 8M eventos ≈ 5 min por contrato-día; 5 contratos × 10 sesiones ≈ 2 h en serie, ~30 min con un proceso por contrato. El adapter acepta `start_ns`/`end_ns` para saltar registros fuera de la ventana antes de construir el evento.
