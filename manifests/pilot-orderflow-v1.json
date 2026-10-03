@@ -53,7 +53,7 @@
       "submitted_at": "2026-10-03T07:53:10+00:00",
       "cost_usd": null,
       "billed_size": null,
-      "state": "queued",
+      "state": "processing",
       "files": {}
     }
   }

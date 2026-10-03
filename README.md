@@ -20,7 +20,8 @@ Decisiones de implementación: [docs/adr/](docs/adr/).
 | ENG-03 Adapter Databento | hecho sobre fixture real de 1 min; validación sobre la muestra completa al terminar la descarga | `src/trading_scanner/adapters/market`, ADR-003 |
 | ENG-04 Libro por F_LAST y quality gate | hecho (sintético + minuto real); validar en muestra completa | `src/trading_scanner/orderbook`, `src/trading_scanner/quality` |
 | ENG-05 Replay causal, barras y features v1 | hecho (determinismo + futuro no cambia pasado); validar en muestra completa | `src/trading_scanner/replay`, `src/trading_scanner/features` |
-| ENG-06 LR-v1 y eventos READY | siguiente | — |
+| ENG-06 LR-v1 máquina de estados y candidatos READY | hecho (ejemplo positivo + 6 rechazos + cooldown/fusión/duplicados/conflicto/short) | `src/trading_scanner/setups/liquidity_reversal` |
+| ENG-07 EXEC-v1 y labeler | siguiente | — |
 | ENG-04..11 | pendiente | — |
 
 Accesos pendientes del usuario (protocolo §2): cuenta Databento (`DATABENTO_API_KEY`) y cuenta TypeSafe/Jev (`TYPESAFE_API_KEY`). Nunca en el repo.
