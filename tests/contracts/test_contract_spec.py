@@ -57,4 +57,6 @@ def test_catalog_loads_all_three_roots_and_validates_tick_identity(catalog):
     assert catalog.get("ESZ4").tick_value == Decimal("12.50")
     assert catalog.get("NQZ4").tick_value == Decimal("5.00")
     assert catalog.get("GCZ4").tick_value == Decimal("10.00")
-    assert all(c.metadata_verified is False for c in catalog)
+    verified = {c.contract_id for c in catalog if c.metadata_verified}
+    assert verified == {"ESU4", "ESZ4", "NQU4", "NQZ4"}  # contrastados con definitions 2024-09-20
+    assert all(c.metadata_verified is False for c in catalog if c.root == "GC")  # first notice sin verificar

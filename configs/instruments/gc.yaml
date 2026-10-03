@@ -1,6 +1,9 @@
-# Gold (COMEX). metadata_verified=false: GC tiene vencimientos mensuales y FIRST NOTICE; las fechas
-# de abajo son aproximaciones de diseño y DEBEN sustituirse por definitions reales en ENG-03.
-# 0.10 USD/oz × 100 oz = 10.00 USD/tick.
+# Gold (COMEX, exchange XCEC en definitions). 0.10 USD/oz × 100 oz = 10.00 USD/tick (verificado en
+# definition 2024-09-20: min_price_increment 0.10, unit_of_measure_qty 100).
+# GC cotiza activo en feb/abr/jun/ago/dic; los meses intermedios (GCV4, GCG5…) casi no tienen volumen
+# (ver docs/ACCESOS-2026-10-03.md). first_notice_date NO viene en definitions: sigue siendo un
+# supuesto de diseño (último día hábil del mes previo) hasta contrastarlo con CME; por eso ningún
+# contrato de GC lleva metadata_verified=true aunque expiry/tick sí estén verificados.
 venue: COMEX
 root: GC
 tick_size: "0.10"
@@ -13,7 +16,7 @@ contracts:
     expiry: 2024-10-29
     first_notice_date: 2024-09-30
     last_trading_date: 2024-10-29
-  - contract_id: GCZ4
+  - contract_id: GCZ4            # expiry verificado en definition (2024-12-27 18:30Z)
     expiry: 2024-12-27
     first_notice_date: 2024-11-29
     last_trading_date: 2024-12-27

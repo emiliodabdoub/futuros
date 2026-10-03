@@ -1,6 +1,7 @@
-# E-mini S&P 500 (CME). metadata_verified=false: fechas y símbolos deben contrastarse con las
-# definitions del proveedor (ENG-03) antes de usarse en un manifiesto. Valores públicos de tick:
-# 0.25 puntos × 50 USD/punto = 12.50 USD/tick.
+# E-mini S&P 500 (CME, exchange XCME). 0.25 × 50 USD = 12.50 USD/tick.
+# ESU4 y ESZ4: tick, multiplicador y expiración verificados contra definitions de Databento
+# (GLBX.MDP3, 2024-09-20): ESU4 expira 2024-09-20 13:30Z, ESZ4 2024-12-20 14:30Z.
+# ESH5/ESM5: fechas de diseño, sin verificar.
 venue: CME
 root: ES
 tick_size: "0.25"
@@ -12,9 +13,11 @@ contracts:
   - contract_id: ESU4
     expiry: 2024-09-20
     last_trading_date: 2024-09-20
+    metadata_verified: true
   - contract_id: ESZ4
     expiry: 2024-12-20
     last_trading_date: 2024-12-20
+    metadata_verified: true
   - contract_id: ESH5
     expiry: 2025-03-21
     last_trading_date: 2025-03-21

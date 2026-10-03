@@ -56,16 +56,5 @@
       "state": "queued",
       "files": {}
     }
-  },
-  "dataset_condition": {
-    "checked_at": "2026-10-03",
-    "degraded_days": [
-      "2024-09-18"
-    ],
-    "source": "metadata.get_dataset_condition",
-    "file": "manifests/pilot-orderflow-v1.dataset-condition.json"
-  },
-  "notes": [
-    "2024-09-18 marcado 'degraded' por Databento: la sesión se audita aparte en ENG-04 y, si el quality gate la excluye, se reemplaza por la siguiente sesión válida del bloque train 2024 (protocolo §3.1). Coincide con FOMC (18-sep-2024), día bloqueado por el filtro macro §8 en todo caso."
-  ]
+  }
 }

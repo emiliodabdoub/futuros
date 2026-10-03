@@ -1,4 +1,6 @@
-# E-mini Nasdaq-100 (CME). metadata_verified=false (ver es.yaml). 0.25 × 20 USD = 5.00 USD/tick.
+# E-mini Nasdaq-100 (CME, exchange XCME). 0.25 × 20 USD = 5.00 USD/tick.
+# NQU4 y NQZ4 verificados contra definitions de Databento (2024-09-20): NQU4 expira 2024-09-20 13:30Z,
+# NQZ4 2024-12-20 14:30Z. NQH5/NQM5: fechas de diseño, sin verificar.
 venue: CME
 root: NQ
 tick_size: "0.25"
@@ -10,9 +12,11 @@ contracts:
   - contract_id: NQU4
     expiry: 2024-09-20
     last_trading_date: 2024-09-20
+    metadata_verified: true
   - contract_id: NQZ4
     expiry: 2024-12-20
     last_trading_date: 2024-12-20
+    metadata_verified: true
   - contract_id: NQH5
     expiry: 2025-03-21
     last_trading_date: 2025-03-21
